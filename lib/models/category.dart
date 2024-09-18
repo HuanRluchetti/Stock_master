@@ -1,14 +1,11 @@
 class Category {
-  final int id;
-  final String name;
-  final String description;
+  int? id;
+  String name;
+  String? description;
 
-  Category({
-    required this.id,
-    required this.name,
-    required this.description,
-  });
+  Category({this.id, required this.name, this.description});
 
+  // Converter de Map para Category
   factory Category.fromMap(Map<String, dynamic> map) {
     return Category(
       id: map['id'],
@@ -17,6 +14,7 @@ class Category {
     );
   }
 
+  // Converter Category para Map
   Map<String, dynamic> toMap() {
     return {
       'id': id,
