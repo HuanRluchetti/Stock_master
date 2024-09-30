@@ -30,7 +30,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Gestão de Produtos'),
+        title: Text('Stock Master'),
       ),
       body: Center(
         child: Column(
@@ -40,28 +40,10 @@ class HomeScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ProductForm()),
-                );
-              },
-              child: Text('Cadastrar Produto'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
                   MaterialPageRoute(builder: (context) => ProductList()),
                 );
               },
               child: Text('Listar Produtos'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => CategoryForm()),
-                );
-              },
-              child: Text('Cadastrar Categorias'),
             ),
             ElevatedButton(
               onPressed: () {
@@ -85,28 +67,10 @@ class HomeScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => StockForm()),
-                );
-              },
-              child: Text('Cadastrar Estoque'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
                   MaterialPageRoute(builder: (context) => StockMovementList()),
                 );
               },
               child: Text('Listar movimentação'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => StockMovementForm()),
-                );
-              },
-              child: Text('Cadastrar movimentação'),
             ),
           ],
         ),
