@@ -4,6 +4,7 @@ import 'package:path/path.dart';
 import '../models/category.dart';
 import '../models/product.dart';
 import '../models/stock.dart';
+import '../models/stock_movement.dart';
 
 class DatabaseHelper {
   static final _databaseName = "app_database.db";
@@ -191,5 +192,52 @@ class DatabaseHelper {
       where: 'id = ?',
       whereArgs: [stock.id],
     );
+  }
+
+  // Inserir uma nova movimentação de estoque
+  Future<int> insertStockMovement(StockMovement stockMovement) async {
+    final db = await database;
+    return await db.insert('stock_movement', stockMovement.toMap());
+  }
+
+// Listar todas as movimentações de estoque
+  Future<List<StockMovement>> getAllStockMovements() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('stock_movement');
+
+    return List.generate(maps.length, (i) {
+      return StockMovement.fromMap(maps[i]);
+    });
+  }
+
+  // Atualiza a quantidade em estoque após a movimentação
+  Future<void> updateStockQuantity(StockMovement stockMovement) async {
+    final db = await database;
+
+    // Obtém o item de estoque correspondente ao código de barras
+    List<Map<String, dynamic>> stockData = await db.query(
+      'stock',
+      where: 'bar_code = ?',
+      whereArgs: [stockMovement.barCode],
+    );
+
+    if (stockData.isNotEmpty) {
+      Stock stock = Stock.fromMap(stockData.first);
+
+      // Atualiza a quantidade de acordo com o tipo de movimentação (entrada ou saída)
+      if (stockMovement.movementType == 'Entrada') {
+        stock.quantity += stockMovement.quantity;
+      } else if (stockMovement.movementType == 'Saída') {
+        stock.quantity -= stockMovement.quantity;
+      }
+
+      // Atualiza o estoque no banco de dados
+      await db.update(
+        'stock',
+        stock.toMap(),
+        where: 'id = ?',
+        whereArgs: [stock.id],
+      );
+    }
   }
 }

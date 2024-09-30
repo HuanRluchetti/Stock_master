@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:stock_master/screens/category_form.dart';
+import 'package:stock_master/screens/category_list.dart';
+import 'package:stock_master/screens/stock_form.dart';
+import 'package:stock_master/screens/stock_list.dart';
+import 'package:stock_master/screens/stock_movement.dart';
+import 'package:stock_master/screens/stock_movement_list.dart';
 import '/screens/product_form.dart';
 import '/screens/product_list.dart';
 
@@ -47,6 +53,60 @@ class HomeScreen extends StatelessWidget {
                 );
               },
               child: Text('Listar Produtos'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CategoryForm()),
+                );
+              },
+              child: Text('Cadastrar Categorias'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CategoryList()),
+                );
+              },
+              child: Text('Listar Categorias'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => StockList()),
+                );
+              },
+              child: Text('Listar Estoque'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => StockForm()),
+                );
+              },
+              child: Text('Cadastrar Estoque'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => StockMovementList()),
+                );
+              },
+              child: Text('Listar movimentação'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => StockMovementForm()),
+                );
+              },
+              child: Text('Cadastrar movimentação'),
             ),
           ],
         ),
