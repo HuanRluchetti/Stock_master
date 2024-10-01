@@ -33,9 +33,13 @@ class _StockListState extends State<StockList> {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => StockForm()),
-              ).then((_) => setState(() {
+              ).then((result) {
+                if (result != null && result) {
+                  setState(() {
                     _fetchStock();
-                  }));
+                  });
+                }
+              });
             },
           ),
         ],
@@ -57,17 +61,20 @@ class _StockListState extends State<StockList> {
                 final stockItem = stockItems[index];
                 return ListTile(
                   title: Text(stockItem.name),
-                  subtitle: Text(
-                      'Quantidade: ${stockItem.quantity}, Preço de Venda: ${stockItem.salePrice}'),
+                  subtitle: Text('Quantidade: ${stockItem.quantity}'),
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => StockForm(stock: stockItem),
                       ),
-                    ).then((_) => setState(() {
+                    ).then((result) {
+                      if (result != null && result) {
+                        setState(() {
                           _fetchStock();
-                        }));
+                        });
+                      }
+                    });
                   },
                 );
               },

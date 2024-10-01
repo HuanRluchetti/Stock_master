@@ -240,4 +240,14 @@ class DatabaseHelper {
       );
     }
   }
+
+  // Função para deletar um produto do estoque pelo ID
+  Future<int> deleteStock(int id) async {
+    final db = await database;
+    return await db.delete(
+      'stock',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
 }

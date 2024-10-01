@@ -2,7 +2,7 @@ class Stock {
   int? id;
   String barCode;
   String name;
-  String description;
+  String? description;
   double quantity;
   double paidValue;
   double salePrice;
@@ -13,7 +13,7 @@ class Stock {
     this.id,
     required this.barCode,
     required this.name,
-    required this.description,
+    this.description,
     required this.quantity,
     required this.paidValue,
     required this.salePrice,
