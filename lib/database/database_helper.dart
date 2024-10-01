@@ -153,6 +153,27 @@ class DatabaseHelper {
     return null;
   }
 
+  // Função para atualizar uma categoria
+  Future<int> updateCategory(Category category) async {
+    final db = await database;
+    return await db.update(
+      'category',
+      category.toMap(),
+      where: 'id = ?',
+      whereArgs: [category.id],
+    );
+  }
+
+  // Função para deletar uma categoria pelo ID
+  Future<int> deleteCategory(int id) async {
+    final db = await database;
+    return await db.delete(
+      'category',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
   // Inserir um novo item de estoque
   Future<int> insertStock(Stock stock) async {
     final db = await database;
@@ -246,27 +267,6 @@ class DatabaseHelper {
     final db = await database;
     return await db.delete(
       'stock',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
-
-  // Função para atualizar uma categoria
-  Future<int> updateCategory(Category category) async {
-    final db = await database;
-    return await db.update(
-      'category',
-      category.toMap(),
-      where: 'id = ?',
-      whereArgs: [category.id],
-    );
-  }
-
-  // Função para deletar uma categoria pelo ID
-  Future<int> deleteCategory(int id) async {
-    final db = await database;
-    return await db.delete(
-      'category',
       where: 'id = ?',
       whereArgs: [id],
     );
