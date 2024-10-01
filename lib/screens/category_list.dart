@@ -33,9 +33,13 @@ class _CategoryListState extends State<CategoryList> {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => CategoryForm()),
-              ).then((_) => setState(() {
+              ).then((result) {
+                if (result != null && result) {
+                  setState(() {
                     _fetchCategories();
-                  }));
+                  });
+                }
+              });
             },
           ),
         ],
@@ -57,7 +61,24 @@ class _CategoryListState extends State<CategoryList> {
                 final category = categories[index];
                 return ListTile(
                   title: Text(category.name),
-                  subtitle: Text(category.description),
+                  subtitle: category.description != null &&
+                          category.description!.isNotEmpty
+                      ? Text(category.description!)
+                      : Text('Sem descrição'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CategoryForm(category: category),
+                      ),
+                    ).then((result) {
+                      if (result != null && result) {
+                        setState(() {
+                          _fetchCategories();
+                        });
+                      }
+                    });
+                  },
                 );
               },
             );

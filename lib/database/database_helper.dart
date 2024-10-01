@@ -250,4 +250,25 @@ class DatabaseHelper {
       whereArgs: [id],
     );
   }
+
+  // Função para atualizar uma categoria
+  Future<int> updateCategory(Category category) async {
+    final db = await database;
+    return await db.update(
+      'category',
+      category.toMap(),
+      where: 'id = ?',
+      whereArgs: [category.id],
+    );
+  }
+
+  // Função para deletar uma categoria pelo ID
+  Future<int> deleteCategory(int id) async {
+    final db = await database;
+    return await db.delete(
+      'category',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
 }

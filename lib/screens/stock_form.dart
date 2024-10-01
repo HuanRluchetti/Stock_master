@@ -95,7 +95,7 @@ class _StockFormState extends State<StockForm> {
     return Scaffold(
       appBar: AppBar(
         title:
-            Text(widget.stock == null ? 'Cadastrar Produto' : 'Editar Produto'),
+            Text(widget.stock == null ? 'Cadastrar Estoque' : 'Editar Estoque'),
         actions: widget.stock != null
             ? [
                 IconButton(
