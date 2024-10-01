@@ -83,12 +83,61 @@ class _ProductFormState extends State<ProductForm> {
     }
   }
 
+  void _deleteProduct() async {
+    if (widget.product != null) {
+      await DatabaseHelper.instance.deleteProduct(widget.product!.barCode);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Produto deletado com sucesso!')),
+      );
+      Navigator.pop(context, true);
+    }
+
+    // if (widget.stock != null) {
+    //   await DatabaseHelper.instance.deleteStock(widget.stock!.id!);
+    //   Navigator.pop(context, true); // Retornar para atualizar a lista
+    // }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
             widget.product == null ? 'Cadastrar Produto' : 'Editar Produto'),
+        actions: widget.product != null
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Confirmar Exclusão'),
+                          content: const Text(
+                              'Você tem certeza que deseja deletar este produto?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop(); // Fecha o diálogo
+                              },
+                              child: const Text('Cancelar'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                _deleteProduct();
+                                Navigator.of(context).pop(); // Fecha o diálogo
+                              },
+                              child: const Text('Deletar'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
+              ]
+            : null,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

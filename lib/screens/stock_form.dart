@@ -62,11 +62,11 @@ class _StockFormState extends State<StockForm> {
     if (_formKey.currentState!.validate()) {
       final stock = Stock(
         id: widget.stock?.id,
-        barCode: '0000', // Exemplo para simplificar
+        barCode: '0000',
         name: _nameController.text,
         quantity: double.parse(_quantityController.text),
         salePrice: double.parse(_salePriceController.text),
-        paidValue: 0.0, // Exemplo para simplificar
+        paidValue: 0.0,
         expiryDate: DateTime.now(),
         entryDate: DateTime.now(),
       );

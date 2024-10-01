@@ -40,6 +40,15 @@ class HomeScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
+                  MaterialPageRoute(builder: (context) => ProductForm()),
+                );
+              },
+              child: Text('Cadastrar Produtos'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
                   MaterialPageRoute(builder: (context) => ProductList()),
                 );
               },
