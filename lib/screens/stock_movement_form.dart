@@ -14,28 +14,30 @@ class StockMovementForm extends StatefulWidget {
 class _StockMovementFormState extends State<StockMovementForm> {
   final _formKey = GlobalKey<FormState>();
   late String _type;
-  late String _productCode;
-  late int _quantity;
-  late String _date;
+  late String _barCode;
+  late double _quantity; // Altere para double para ser compatível com o modelo
+  late DateTime _date;
 
   @override
   void initState() {
     super.initState();
-    _type = widget.stockMovement?.type ?? 'Entrada';
-    _productCode = widget.stockMovement?.productCode ?? '';
-    _quantity = widget.stockMovement?.quantity ?? 0;
-    _date = widget.stockMovement?.date ?? DateTime.now().toIso8601String();
+    _type = widget.stockMovement?.movementType ?? 'Entrada';
+    _barCode = widget.stockMovement?.barCode ?? '';
+    _quantity = widget.stockMovement?.quantity ?? 0.0;
+    _date = widget.stockMovement?.movementDate ?? DateTime.now(); // Alterado para DateTime
   }
+  
 
   void _saveMovement() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       final movement = StockMovement(
         id: widget.stockMovement?.id,
-        type: _type,
-        productCode: _productCode,
+        barCode: _barCode,
+        stockId: 'default_stock', // Defina um stockId padrão se necessário
+        movementType: _type,
         quantity: _quantity,
-        date: _date,
+        movementDate: _date,
       );
       if (widget.stockMovement == null) {
         await DatabaseHelper.instance.insertStockMovement(movement);
@@ -66,20 +68,20 @@ class _StockMovementFormState extends State<StockMovementForm> {
                 onSaved: (val) => _type = val!,
               ),
               TextFormField(
-                initialValue: _productCode,
+                initialValue: _barCode,
                 decoration: InputDecoration(labelText: 'Código do Produto'),
-                onSaved: (val) => _productCode = val!,
+                onSaved: (val) => _barCode = val!,
               ),
               TextFormField(
                 initialValue: _quantity.toString(),
                 decoration: InputDecoration(labelText: 'Quantidade'),
                 keyboardType: TextInputType.number,
-                onSaved: (val) => _quantity = int.parse(val!),
+                onSaved: (val) => _quantity = double.parse(val!), // Alterado para double
               ),
               TextFormField(
-                initialValue: _date,
+                initialValue: _date.toIso8601String(),
                 decoration: InputDecoration(labelText: 'Data'),
-                onSaved: (val) => _date = val!,
+                onSaved: (val) => _date = DateTime.parse(val!), // Alterado para DateTime
               ),
               SizedBox(height: 20),
               ElevatedButton(

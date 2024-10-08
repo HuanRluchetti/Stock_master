@@ -22,7 +22,7 @@ class _StockMovementListState extends State<StockMovementList> {
   }
 
   void _deleteMovement(int id) async {
-    await DatabaseHelper.instance.deleteStockMovement(id);
+    await DatabaseHelper.instance.deleteStock(id);
     setState(() {
       _fetchStockMovements();
     });
@@ -68,8 +68,8 @@ class _StockMovementListState extends State<StockMovementList> {
               itemBuilder: (context, index) {
                 final movement = snapshot.data![index];
                 return ListTile(
-                  title: Text('${movement.type}: ${movement.quantity} unidades - Produto: ${movement.productCode}'),
-                  subtitle: Text('Data: ${movement.date}'),
+                  title: Text('${movement.movementType}: ${movement.quantity} unidades - Produto: ${movement.barCode}'),
+                  subtitle: Text('Data: ${movement.movementDate}'),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

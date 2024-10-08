@@ -220,6 +220,17 @@ class DatabaseHelper {
     final db = await database;
     return await db.insert('stock_movement', stockMovement.toMap());
   }
+  // Atualizar uma movimentação de estoque existente
+Future<int> updateStockMovement(StockMovement stockMovement) async {
+  final db = await database;
+
+  return await db.update(
+    'stock_movement',
+    stockMovement.toMap(),
+    where: 'id = ?',
+    whereArgs: [stockMovement.id],
+  );
+}
 
 // Listar todas as movimentações de estoque
   Future<List<StockMovement>> getAllStockMovements() async {
