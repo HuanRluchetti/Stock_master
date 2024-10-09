@@ -22,7 +22,7 @@ class StockMovement {
       barCode: map['bar_code'],
       stockId: map['stock_id'],
       movementType: map['movement_type'],
-      quantity: map['quantity'],
+      quantity: double.parse(map['quantity'].toString()),
       movementDate: DateTime.parse(map['movement_date']),
     );
   }

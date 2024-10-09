@@ -49,7 +49,7 @@ class DatabaseHelper {
       CREATE TABLE stock_movement (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         bar_code TEXT,
-        stock INTEGER,
+        stock_id INTEGER,
         movement_type TEXT,
         quantity TEXT,
         movement_date TEXT
