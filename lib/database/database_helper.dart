@@ -282,4 +282,62 @@ Future<int> updateStockMovement(StockMovement stockMovement) async {
       whereArgs: [id],
     );
   }
+  // Buscar produtos abaixo do estoque mínimo
+  Future<List<Product>> getProductsBelowMinStock() async {
+    final db = await database;
+
+    // Buscando produtos abaixo da quantidade mínima
+    final result = await db.rawQuery('''
+      SELECT product.* FROM product
+      JOIN stock ON product.bar_code = stock.bar_code
+      WHERE stock.quantity < product.min_quantity
+    ''');
+
+    return List.generate(result.length, (i) {
+      return Product.fromMap(result[i]);
+    });
+  }
+  // Buscar produtos próximos ao vencimento (ex: dentro de 30 dias)
+Future<List<Product>> getProductsNearExpiration() async {
+  final db = await database;
+  final now = DateTime.now();
+  final in30Days = now.add(Duration(days: 30)).toIso8601String();
+
+  final result = await db.rawQuery('''
+    SELECT * FROM product
+    WHERE expiry_date > ? AND expiry_date <= ?
+  ''', [now.toIso8601String(), in30Days]);
+
+  return List.generate(result.length, (i) {
+    return Product.fromMap(result[i]);
+  });
+}
+
+  // Buscar produtos vencidos
+  Future<List<Product>> getExpiredProducts() async {
+    final db = await database;
+    final now = DateTime.now().toIso8601String();
+
+    final result = await db.rawQuery('''
+      SELECT * FROM product
+      WHERE expiry_date < ?
+    ''', [now]);
+
+    return List.generate(result.length, (i) {
+      return Product.fromMap(result[i]);
+    });
+  }
+  // Buscar movimentações entre duas datas
+  Future<List<StockMovement>> getMovementsByDateRange(DateTime startDate, DateTime endDate) async {
+    final db = await database;
+    final result = await db.rawQuery('''
+      SELECT * FROM stock_movement
+      WHERE movement_date BETWEEN ? AND ?
+      ORDER BY movement_date DESC
+    ''', [startDate.toIso8601String(), endDate.toIso8601String()]);
+
+    return List.generate(result.length, (i) {
+      return StockMovement.fromMap(result[i]);
+    });
+  }
 }

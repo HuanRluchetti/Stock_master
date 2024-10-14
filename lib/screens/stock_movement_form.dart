@@ -26,7 +26,7 @@ class _StockMovementFormState extends State<StockMovementForm> {
     _quantity = widget.stockMovement?.quantity ?? 0.0;
     _date = widget.stockMovement?.movementDate ?? DateTime.now(); // Alterado para DateTime
   }
-  
+
 
   void _saveMovement() async {
     if (_formKey.currentState!.validate()) {

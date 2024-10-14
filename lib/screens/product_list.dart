@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../database/database_helper.dart';
 import 'product_form.dart';
+import 'movement_report.dart';
 
 class ProductList extends StatefulWidget {
   @override
@@ -36,6 +37,15 @@ class _ProductListState extends State<ProductList> {
       appBar: AppBar(
         title: Text('Lista de Produtos'),
         actions: [
+          IconButton(
+            icon: Icon(Icons.report),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MovementReport()), // Navegar para o relatório de movimentações
+              );
+            },
+          ),
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: () {
@@ -72,7 +82,7 @@ class _ProductListState extends State<ProductList> {
                   child: ListTile(
                     title: Text(product.name),
                     subtitle: Text('Código: ${product.barCode}'),
-                    trailing: Text('Qtd: ${product.minQuantity}'),
+                    trailing: Text('Qtd Mínima: ${product.minQuantity}'),
                     onTap: () {
                       Navigator.push(
                         context,
