@@ -38,6 +38,15 @@ class _StockMovementListState extends State<StockMovementList> {
     }
   }
 
+  void _deleteMovement(int id) async {
+    await DatabaseHelper.instance.deleteStock(id);
+    setState(() {
+      _fetchStockMovements();
+    });
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text('Movimentação excluída com sucesso!')));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
