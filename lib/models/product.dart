@@ -1,20 +1,18 @@
 class Product {
+  final int? id; // Incluímos o campo id.
   final String barCode;
-  final int stockId;
   final String name;
-  final String? image;
   final double minQuantity;
   final String typeQuantity;
   final DateTime expiryDate;
   final DateTime registrationDate;
   final int categoryId;
-  final num paidValue;
+  final double paidValue;
 
   Product({
+    this.id, // O id pode ser nulo para novos produtos.
     required this.barCode,
-    required this.stockId,
     required this.name,
-    this.image,
     required this.minQuantity,
     required this.typeQuantity,
     required this.expiryDate,
@@ -23,13 +21,11 @@ class Product {
     required this.paidValue,
   });
 
-  // Método para converter um produto para um Map (para inserir no banco)
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'bar_code': barCode,
-      'stock_id': stockId,
       'name': name,
-      'image': image,
       'min_quantity': minQuantity,
       'type_quantity': typeQuantity,
       'expiry_date': expiryDate.toIso8601String(),
@@ -39,19 +35,35 @@ class Product {
     };
   }
 
-  // Método para criar um objeto Product a partir de um Map (consulta do banco)
   factory Product.fromMap(Map<String, dynamic> map) {
     return Product(
-      barCode: map['bar_code'],
-      stockId: map['stock_id'],
-      name: map['name'],
-      image: map['image'],
-      minQuantity: map['min_quantity'],
-      typeQuantity: map['type_quantity'],
-      expiryDate: DateTime.parse(map['expiry_date']),
-      registrationDate: DateTime.parse(map['registration_date']),
-      categoryId: map['category_id'],
-      paidValue: map['paid_value'],
+      id: map['id'] as int?,
+      barCode: map['bar_code']?.toString() ??
+          '', // Garante que seja uma String não nula
+      name: map['name']?.toString() ??
+          'Produto Desconhecido', // Nome padrão se nulo
+      minQuantity: (map['min_quantity'] as num?)?.toDouble() ??
+          0.0, // Converte ou usa 0.0
+      typeQuantity:
+          map['type_quantity']?.toString() ?? '', // Garante uma String não nula
+      expiryDate: _parseDate(map['expiry_date']), // Trata data de validade
+      registrationDate:
+          _parseDate(map['registration_date']), // Trata data de registro
+      categoryId: map['category_id'] as int? ?? -1, // Categoria padrão se nulo
+      paidValue: (map['paid_value'] as num?)?.toDouble() ??
+          0.0, // Valor padrão se nulo
     );
+  }
+
+  static DateTime _parseDate(dynamic date) {
+    if (date == null || date.toString().isEmpty) {
+      return DateTime.now(); // Fallback para a data atual
+    }
+    final parsedDate = DateTime.tryParse(date.toString());
+    if (parsedDate != null) {
+      return parsedDate; // Retorna a data válida
+    } else {
+      return DateTime.now(); // Retorna a data atual se inválido
+    }
   }
 }

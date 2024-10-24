@@ -17,7 +17,6 @@ class Category {
   // Converte um objeto Category para um Map
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
       'name': name,
       'description': description,
     };

@@ -5,7 +5,7 @@ import '../database/database_helper.dart';
 class StockForm extends StatefulWidget {
   final Stock? stock;
 
-  const StockForm({Key? key, this.stock}) : super(key: key);
+  const StockForm({super.key, this.stock});
 
   @override
   _StockFormState createState() => _StockFormState();
@@ -13,46 +13,37 @@ class StockForm extends StatefulWidget {
 
 class _StockFormState extends State<StockForm> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  final _barCodeController = TextEditingController();
   final _quantityController = TextEditingController();
   final _salePriceController = TextEditingController();
-  bool _hasChanged = false; // Para monitorar mudanças no formulário
+  bool _hasChanged = false;
 
   @override
   void initState() {
     super.initState();
     if (widget.stock != null) {
-      // Modo de edição: preencher os campos com os dados do produto
-      _nameController.text = widget.stock!.name;
+      _barCodeController.text = widget.stock!.productId.toString();
       _quantityController.text = widget.stock!.quantity.toString();
       _salePriceController.text = widget.stock!.salePrice.toString();
     }
 
-    // Monitorar mudanças nos campos
-    _nameController.addListener(_onFormChange);
+    _barCodeController.addListener(_onFormChange);
     _quantityController.addListener(_onFormChange);
     _salePriceController.addListener(_onFormChange);
   }
 
   void _onFormChange() {
-    if (widget.stock != null) {
-      // Habilitar o botão "Salvar" apenas se houver alguma mudança no formulário
-      setState(() {
-        _hasChanged = _nameController.text != widget.stock!.name ||
-            _quantityController.text != widget.stock!.quantity.toString() ||
-            _salePriceController.text != widget.stock!.salePrice.toString();
-      });
-    } else {
-      // Se estamos no modo de criação, sempre permitir salvar
-      setState(() {
-        _hasChanged = true;
-      });
-    }
+    setState(() {
+      _hasChanged = widget.stock == null ||
+          _barCodeController.text != widget.stock!.productId ||
+          _quantityController.text != widget.stock!.quantity.toString() ||
+          _salePriceController.text != widget.stock!.salePrice.toString();
+    });
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _barCodeController.dispose();
     _quantityController.dispose();
     _salePriceController.dispose();
     super.dispose();
@@ -62,31 +53,32 @@ class _StockFormState extends State<StockForm> {
     if (_formKey.currentState!.validate()) {
       final stock = Stock(
         id: widget.stock?.id,
-        barCode: '0000',
-        name: _nameController.text,
-        quantity: double.parse(_quantityController.text),
-        salePrice: double.parse(_salePriceController.text),
-        paidValue: 0.0,
-        expiryDate: DateTime.now(),
-        entryDate: DateTime.now(),
+        productId: int.parse(_barCodeController.text),
+        quantity: double.tryParse(_quantityController.text) ?? 0.0,
+        salePrice: double.tryParse(_salePriceController.text) ?? 0.0,
+        paidValue: widget.stock?.paidValue ?? 0.0,
+        expiryDate: widget.stock?.expiryDate ?? DateTime.now(),
+        entryDate: widget.stock?.entryDate ?? DateTime.now(),
       );
 
       if (widget.stock == null) {
-        // Inserir novo produto
         await DatabaseHelper.instance.insertStock(stock);
       } else {
-        // Atualizar produto existente
         await DatabaseHelper.instance.updateStock(stock);
       }
 
-      Navigator.pop(context, true); // Retornar para atualizar a lista
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
     }
   }
 
   void _deleteStock() async {
     if (widget.stock != null) {
       await DatabaseHelper.instance.deleteStock(widget.stock!.id!);
-      Navigator.pop(context, true); // Retornar para atualizar a lista
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
     }
   }
 
@@ -94,12 +86,11 @@ class _StockFormState extends State<StockForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text(widget.stock == null ? 'Cadastrar Estoque' : 'Editar Estoque'),
+        title: Text(widget.stock == null ? 'Cadastrar Estoque' : 'Editar Estoque'),
         actions: widget.stock != null
             ? [
                 IconButton(
-                  icon: Icon(Icons.delete),
+                  icon: const Icon(Icons.delete),
                   onPressed: _deleteStock,
                 ),
               ]
@@ -112,38 +103,45 @@ class _StockFormState extends State<StockForm> {
           child: Column(
             children: [
               TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(labelText: 'Nome do Produto'),
+                controller: _barCodeController,
+                decoration: const InputDecoration(labelText: 'Código de Barras'),
+                keyboardType: TextInputType.text,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Informe o nome do produto';
+                    return 'Informe o código de barras do produto';
                   }
                   return null;
                 },
               ),
               TextFormField(
                 controller: _quantityController,
-                decoration: InputDecoration(labelText: 'Quantidade'),
+                decoration: const InputDecoration(labelText: 'Quantidade'),
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Informe a quantidade';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Digite um valor numérico válido';
                   }
                   return null;
                 },
               ),
               TextFormField(
                 controller: _salePriceController,
-                decoration: InputDecoration(labelText: 'Preço de Venda'),
+                decoration: const InputDecoration(labelText: 'Preço de Venda'),
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Informe o preço de venda';
                   }
+                  if (double.tryParse(value) == null) {
+                    return 'Digite um valor numérico válido';
+                  }
                   return null;
                 },
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _hasChanged ? _saveStock : null,
                 child: Text(widget.stock == null ? 'Cadastrar' : 'Salvar'),

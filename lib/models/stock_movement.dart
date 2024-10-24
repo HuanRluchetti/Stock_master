@@ -1,25 +1,25 @@
 class StockMovement {
-  int? id;
-  String barCode;
-  String stockId;
-  String movementType;
-  double quantity;
-  DateTime movementDate;
+  final int? id;
+  final int productId; 
+  final int? stockId;
+  final String movementType;
+  final double quantity;
+  final DateTime movementDate;
 
   StockMovement({
     this.id,
-    required this.barCode,
-    required this.stockId,
+    required this.productId,
+    this.stockId,
     required this.movementType,
     required this.quantity,
     required this.movementDate,
   });
 
-  // Converte os dados do banco de dados para um objeto StockMovement
+  // Método para converter um Map em um objeto StockMovement
   factory StockMovement.fromMap(Map<String, dynamic> map) {
     return StockMovement(
       id: map['id'],
-      barCode: map['bar_code'],
+      productId: map['product_id'], 
       stockId: map['stock_id'],
       movementType: map['movement_type'],
       quantity: map['quantity'],
@@ -27,11 +27,11 @@ class StockMovement {
     );
   }
 
-  // Converte um objeto StockMovement para um Map
+  // Método para converter um objeto StockMovement em um Map
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'bar_code': barCode,
+      'product_id': productId, // Ajuste para product_id
       'stock_id': stockId,
       'movement_type': movementType,
       'quantity': quantity,

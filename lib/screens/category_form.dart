@@ -5,7 +5,7 @@ import '../database/database_helper.dart';
 class CategoryForm extends StatefulWidget {
   final Category? category;
 
-  const CategoryForm({Key? key, this.category}) : super(key: key);
+  const CategoryForm({super.key, this.category});  // Usando super.key
 
   @override
   _CategoryFormState createState() => _CategoryFormState();
@@ -15,35 +15,26 @@ class _CategoryFormState extends State<CategoryForm> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
-  bool _hasChanged = false; // Para monitorar mudanças no formulário
+  bool _hasChanged = false;
 
   @override
   void initState() {
     super.initState();
     if (widget.category != null) {
-      // Modo de edição: preencher os campos com os dados da categoria
       _nameController.text = widget.category!.name;
       _descriptionController.text = widget.category!.description ?? '';
     }
 
-    // Monitorar mudanças nos campos
     _nameController.addListener(_onFormChange);
     _descriptionController.addListener(_onFormChange);
   }
 
   void _onFormChange() {
-    if (widget.category != null) {
-      // Habilitar o botão "Salvar" apenas se houver alguma mudança no formulário
-      setState(() {
-        _hasChanged = _nameController.text != widget.category!.name ||
-            _descriptionController.text != (widget.category!.description ?? '');
-      });
-    } else {
-      // Se estamos no modo de criação, sempre permitir salvar
-      setState(() {
-        _hasChanged = true;
-      });
-    }
+    setState(() {
+      _hasChanged = widget.category == null ||
+          _nameController.text != widget.category!.name ||
+          _descriptionController.text != (widget.category!.description ?? '');
+    });
   }
 
   @override
@@ -53,7 +44,7 @@ class _CategoryFormState extends State<CategoryForm> {
     super.dispose();
   }
 
-  void _saveCategory() async {
+  Future<void> _saveCategory() async {
     if (_formKey.currentState!.validate()) {
       final category = Category(
         id: widget.category?.id,
@@ -62,21 +53,23 @@ class _CategoryFormState extends State<CategoryForm> {
       );
 
       if (widget.category == null) {
-        // Inserir nova categoria
         await DatabaseHelper.instance.insertCategory(category);
       } else {
-        // Atualizar categoria existente
         await DatabaseHelper.instance.updateCategory(category);
       }
 
-      Navigator.pop(context, true); // Retornar para atualizar a lista
+      if (mounted) {
+        Navigator.pop(context, true);  // Verificando se o widget ainda está montado
+      }
     }
   }
 
-  void _deleteCategory() async {
+  Future<void> _deleteCategory() async {
     if (widget.category != null) {
       await DatabaseHelper.instance.deleteCategory(widget.category!.id!);
-      Navigator.pop(context, true); // Retornar para atualizar a lista
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
     }
   }
 
@@ -90,7 +83,7 @@ class _CategoryFormState extends State<CategoryForm> {
         actions: widget.category != null
             ? [
                 IconButton(
-                  icon: Icon(Icons.delete),
+                  icon: const Icon(Icons.delete),
                   onPressed: _deleteCategory,
                 ),
               ]
@@ -104,7 +97,7 @@ class _CategoryFormState extends State<CategoryForm> {
             children: [
               TextFormField(
                 controller: _nameController,
-                decoration: InputDecoration(labelText: 'Nome da Categoria'),
+                decoration: const InputDecoration(labelText: 'Nome da Categoria'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Informe o nome da categoria';
@@ -114,9 +107,9 @@ class _CategoryFormState extends State<CategoryForm> {
               ),
               TextFormField(
                 controller: _descriptionController,
-                decoration: InputDecoration(labelText: 'Descrição (opcional)'),
+                decoration: const InputDecoration(labelText: 'Descrição (opcional)'),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _hasChanged ? _saveCategory : null,
                 child: Text(widget.category == null ? 'Cadastrar' : 'Salvar'),

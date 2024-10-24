@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../models/category.dart';
 import '../database/database_helper.dart';
+import '../models/stock.dart';
 
 class ProductForm extends StatefulWidget {
   final Product? product;
 
-  ProductForm({this.product});
+  const ProductForm({super.key, this.product});
 
   @override
   _ProductFormState createState() => _ProductFormState();
@@ -18,9 +19,11 @@ class _ProductFormState extends State<ProductForm> {
   final _barCodeController = TextEditingController();
   final _nameController = TextEditingController();
   final _minQuantityController = TextEditingController();
+  final _quantityController = TextEditingController();
   final _typeQuantityController = TextEditingController();
   final _expiryDateController = TextEditingController();
   final _paidValueController = TextEditingController();
+  final _salePriceController = TextEditingController();
 
   List<Category> _categories = [];
   Category? _selectedCategory;
@@ -28,7 +31,6 @@ class _ProductFormState extends State<ProductForm> {
   @override
   void initState() {
     super.initState();
-
     if (widget.product != null) {
       _barCodeController.text = widget.product!.barCode;
       _nameController.text = widget.product!.name;
@@ -36,36 +38,79 @@ class _ProductFormState extends State<ProductForm> {
       _typeQuantityController.text = widget.product!.typeQuantity;
       _expiryDateController.text = widget.product!.expiryDate.toIso8601String();
       _paidValueController.text = widget.product!.paidValue.toString();
-    }
 
+      _loadStock(widget.product!.barCode); // Carrega estoque pelo código
+    }
     _fetchCategories();
   }
 
+  double _parseDouble(String value) {
+    try {
+      return double.parse(value);
+    } catch (e) {
+      print('Erro ao converter "$value" para double: $e');
+      return 0.0;
+    }
+  }
+
+  void _loadStock(String barCode) async {
+    final stock = await DatabaseHelper.instance.getStockByBarCode(barCode);
+    if (stock != null) {
+      setState(() {
+        _quantityController.text = stock.quantity.toString();
+        _salePriceController.text = stock.salePrice.toString();
+      });
+    }
+  }
+
   void _fetchCategories() async {
-    List<Category> categories =
-        await DatabaseHelper.instance.getAllCategories();
+    List<Category> categories = await DatabaseHelper.instance.getAllCategories();
     setState(() {
       _categories = categories;
       if (widget.product != null) {
-        _selectedCategory = categories
-            .firstWhere((cat) => cat.id == widget.product!.categoryId);
+        _selectedCategory = categories.firstWhere(
+          (cat) => cat.id == widget.product!.categoryId,
+          orElse: () => categories.isNotEmpty
+              ? categories.first
+              : Category(id: -1, name: 'Desconhecido', description: ''),
+        );
       }
     });
   }
 
+  Future<void> _pickExpiryDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() {
+        _expiryDateController.text = picked.toIso8601String().split('T').first;
+      });
+    }
+  }
+
   void _saveProduct() async {
     if (_formKey.currentState!.validate()) {
+      if (_selectedCategory == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Por favor, selecione uma categoria')),
+        );
+        return;
+      }
+
       final product = Product(
+        id: widget.product?.id,
         barCode: _barCodeController.text,
-        stockId: 1, // Placeholder
         name: _nameController.text,
-        image: null,
-        minQuantity: double.parse(_minQuantityController.text),
+        minQuantity: _parseDouble(_minQuantityController.text),
         typeQuantity: _typeQuantityController.text,
         expiryDate: DateTime.parse(_expiryDateController.text),
         registrationDate: DateTime.now(),
         categoryId: _selectedCategory!.id!,
-        paidValue: double.parse(_paidValueController.text),
+        paidValue: _parseDouble(_paidValueController.text),
       );
 
       if (widget.product == null) {
@@ -74,28 +119,24 @@ class _ProductFormState extends State<ProductForm> {
         await DatabaseHelper.instance.updateProduct(product);
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(widget.product == null
-              ? 'Produto cadastrado com sucesso!'
-              : 'Produto atualizado com sucesso!')));
-
-      Navigator.pop(context);
-    }
-  }
-
-  void _deleteProduct() async {
-    if (widget.product != null) {
-      await DatabaseHelper.instance.deleteProduct(widget.product!.barCode);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Produto deletado com sucesso!')),
+      final stock = Stock(
+        productId: product.id!, // Código de barras como ID do estoque
+        quantity: _parseDouble(_quantityController.text),
+        paidValue: _parseDouble(_paidValueController.text),
+        salePrice: _parseDouble(_salePriceController.text),
+        expiryDate: DateTime.parse(_expiryDateController.text),
+        entryDate: DateTime.now(),
       );
-      Navigator.pop(context, true);
-    }
 
-    // if (widget.stock != null) {
-    //   await DatabaseHelper.instance.deleteStock(widget.stock!.id!);
-    //   Navigator.pop(context, true); // Retornar para atualizar a lista
-    // }
+      await DatabaseHelper.instance.insertOrUpdateStock(stock);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Produto salvo com sucesso!')),
+        );
+        Navigator.pop(context);
+      }
+    }
   }
 
   @override
@@ -103,41 +144,8 @@ class _ProductFormState extends State<ProductForm> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-            widget.product == null ? 'Cadastrar Produto' : 'Editar Produto'),
-        actions: widget.product != null
-            ? [
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: const Text('Confirmar Exclusão'),
-                          content: const Text(
-                              'Você tem certeza que deseja deletar este produto?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop(); // Fecha o diálogo
-                              },
-                              child: const Text('Cancelar'),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                _deleteProduct();
-                                Navigator.of(context).pop(); // Fecha o diálogo
-                              },
-                              child: const Text('Deletar'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                ),
-              ]
-            : null,
+          widget.product == null ? 'Cadastrar Produto' : 'Editar Produto',
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -145,101 +153,85 @@ class _ProductFormState extends State<ProductForm> {
           key: _formKey,
           child: ListView(
             children: <Widget>[
-              TextFormField(
+              _buildTextField(
                 controller: _barCodeController,
-                decoration: InputDecoration(labelText: 'Código de Barras'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Informe o código de barras';
-                  }
-                  return null;
-                },
+                label: 'Código de Barras',
+                keyboardType: TextInputType.number,
+                validator: 'Informe o código de barras',
               ),
-              TextFormField(
+              _buildTextField(
                 controller: _nameController,
-                decoration: InputDecoration(labelText: 'Nome'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Informe o nome do produto';
-                  }
-                  return null;
-                },
+                label: 'Nome do Produto',
+                validator: 'Informe o nome do produto',
               ),
-              TextFormField(
+              _buildTextField(
                 controller: _minQuantityController,
-                decoration: InputDecoration(labelText: 'Quantidade Mínima'),
+                label: 'Quantidade Mínima',
                 keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Informe a quantidade mínima';
-                  }
-                  return null;
-                },
+                validator: 'Informe a quantidade mínima',
               ),
-              TextFormField(
+              _buildTextField(
                 controller: _typeQuantityController,
-                decoration: InputDecoration(labelText: 'Tipo de Quantidade'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Informe o tipo de quantidade';
-                  }
-                  return null;
-                },
+                label: 'Tipo de Quantidade',
               ),
-              TextFormField(
+              _buildTextField(
                 controller: _expiryDateController,
-                decoration: InputDecoration(labelText: 'Data de Validade'),
-                keyboardType: TextInputType.datetime,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Informe a data de validade';
-                  }
-                  return null;
-                },
+                label: 'Data de Validade',
+                readOnly: true,
+                onTap: () => _pickExpiryDate(context),
               ),
-              TextFormField(
+              _buildTextField(
                 controller: _paidValueController,
-                decoration: InputDecoration(labelText: 'Valor Pago'),
+                label: 'Valor Pago',
                 keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Informe o valor pago';
-                  }
-                  return null;
-                },
+                validator: 'Informe o valor pago',
               ),
               DropdownButtonFormField<Category>(
-                decoration: InputDecoration(labelText: 'Categoria'),
                 value: _selectedCategory,
-                items: _categories.map((category) {
-                  return DropdownMenuItem<Category>(
-                    value: category,
-                    child: Text(category.name),
-                  );
-                }).toList(),
-                onChanged: (Category? newValue) {
+                items: _categories
+                    .map((category) => DropdownMenuItem<Category>(
+                          value: category,
+                          child: Text(category.name),
+                        ))
+                    .toList(),
+                onChanged: (newValue) {
                   setState(() {
                     _selectedCategory = newValue;
                   });
                 },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Selecione uma categoria';
-                  }
-                  return null;
-                },
+                decoration: const InputDecoration(
+                  labelText: 'Selecione uma Categoria',
+                ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _saveProduct,
-                child: Text(widget.product == null
-                    ? 'Cadastrar Produto'
-                    : 'Salvar Alterações'),
+                child: const Text('Salvar Produto'),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    TextInputType keyboardType = TextInputType.text,
+    String? validator,
+    bool readOnly = false,
+    VoidCallback? onTap,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(labelText: label),
+      keyboardType: keyboardType,
+      readOnly: readOnly,
+      onTap: onTap,
+      validator: validator != null
+          ? (value) => value == null || value.isEmpty ? validator : null
+          : null,
     );
   }
 }
