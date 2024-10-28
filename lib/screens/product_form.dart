@@ -102,7 +102,7 @@ class _ProductFormState extends State<ProductForm> {
       }
 
       final product = Product(
-        id: widget.product?.id,
+        // id: widget.product?.id,
         barCode: _barCodeController.text,
         name: _nameController.text,
         minQuantity: _parseDouble(_minQuantityController.text),
@@ -119,8 +119,10 @@ class _ProductFormState extends State<ProductForm> {
         await DatabaseHelper.instance.updateProduct(product);
       }
 
+
+
       final stock = Stock(
-        productId: product.id!, // Código de barras como ID do estoque
+        productId: int.parse(product.barCode), // Código de barras como ID do estoque
         quantity: _parseDouble(_quantityController.text),
         paidValue: _parseDouble(_paidValueController.text),
         salePrice: _parseDouble(_salePriceController.text),
@@ -134,7 +136,7 @@ class _ProductFormState extends State<ProductForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Produto salvo com sucesso!')),
         );
-        Navigator.pop(context);
+        Navigator.pop(context, 'Produto salvo com sucesso');
       }
     }
   }
